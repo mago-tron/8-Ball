@@ -1,22 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="auto">
 <head>
-  <meta charset="UTF-8">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Magic 8 Ball 🎱</title>
+  <!-- Social preview -->
+  <meta property="og:title" content="Magic 8 Ball 🎱" />
+  <meta property="og:description" content="Ask a yes/no question and shake for your fate." />
+  <meta name="twitter:card" content="summary" />
+  <meta name="theme-color" content="#0ea5e9" />
+  <!-- Emoji favicon (works in modern browsers) -->
+  <link rel="icon" href='data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y="0.9em" font-size="90">🎱</text></svg>' />
   <style>
-    body { font-family: Arial, sans-serif; text-align: center; margin-top: 80px; background: #FFC0CB; color: #E75480; }
-    button { padding: 12px 20px; border: none; border-radius: 10px; background: #3b82f6; color: white; font-size: 16px; cursor: pointer; }
-    input { padding: 10px; border-radius: 8px; border: 1px solid #555; width: 250px; }
-    .answer { margin-top: 30px; font-size: 20px; font-weight: bold; }
+    :root{
+      --bg: #0b1220;
+      --fg: #e213d8;
+      --muted:#9ca3af;
+      --card:#111827;
+      --border:#1f2937;
+      --accent:#f2f6f8;
+      --btn:#2563eb;
+    }
+    @media (prefers-color-scheme: light){
+      :root{ --bg:#f7f7fb; --fg:#0f172a; --muted:#475569; --card:#ffffff; --border:#e5e7eb; --accent:#0284c7; --btn:#2563eb; }
+    }
+    html[data-theme="dark"]{ --bg:#0b1220; --fg:#e5e7eb; --muted:#9ca3af; --card:#111827; --border:#1f2937; --accent:#0ea5e9; --btn:#2563eb; }
+    html[data-theme="light"]{ --bg:#e20ab3; --fg:#f6fcfb; --muted:#475569; --card:#ca7cc0; --border:#e5e7eb; --accent:#d8dadb; --btn:#aa124c; }
+
+    *{box-sizing:border-box}
+    body{ margin:0; min-height:100vh; background:var(--bg); color:var(--fg); font-family:system-ui, Arial, sans-serif; display:grid; place-items:center; padding:24px; }
+
+    .wrap{ width:min(520px, 92vw); }
+    .card{ background:var(--card); border:1px solid var(--border); border-radius:18px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    h1{ margin:0 0 8px; font-size:1.7rem; }
+    p{ margin:0 0 16px; color:var(--muted); }
+    .row{ display:flex; gap:10px; margin-bottom:14px; }
+    input{ flex:1; padding:12px 14px; border-radius:12px; border:1px solid var(--border); background:transparent; color:var(--fg); }
+    button{ padding:12px 16px; border:none; border-radius:12px; background:var(--btn); color:white; font-weight:600; cursor:pointer; }
+    button:active{ transform:translateY(1px); }
+
+    .ball{ width:220px; height:220px; border-radius:50%; background:radial-gradient(circle at 35% 35%, #1f2937, #0b0f1a 60%); margin:18px auto; display:grid; place-items:center; position:relative; }
+    .window{ width:110px; height:110px; border-radius:50%; background:var(--accent); display:grid; place-items:center; color:#001018; text-align:center; padding:14px; font-weight:800; }
+    .answer{ min-height:1.3em; text-align:center; margin-top:12px; font-size:1.1rem; }
+    .note{ text-align:center; font-size:.85rem; color:var(--muted); margin-top:8px; }
+
+    /* Shake animation */
+    @keyframes shake {
+      0% { transform: translateX(0); }
+      20% { transform: translateX(-8px); }
+      40% { transform: translateX(8px); }
+      60% { transform: translateX(-6px); }
+      80% { transform: translateX(6px); }
+      100% { transform: translateX(0); }
+    }
+    .shaking{ animation: shake 400ms ease-in-out; }
+
+    .topbar{ display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:10px; }
+    .theme-toggle{ background:transparent; border:1px solid var(--border); color:var(--fg); padding:8px 12px; border-radius:12px; cursor:pointer; }
   </style>
 </head>
 <body>
-  <h1>🎱 Magic 8 Ball</h1>
-  <p>Ask what your heart desires:</p>
-  <input id="question" placeholder="Will Jennifer always love me?" />
-  <br><br>
-  <button onclick="shake()">Shake</button>
-  <div class="answer" id="answer"></div>
+  <div class="wrap">
+    <div class="card">
+      <div class="topbar">
+        <h1>🎱 Magic 8 Ball</h1>
+        <button id="themeBtn" class="theme-toggle" title="Toggle theme">🌗</button>
+      </div>
+      <p>Ask what your heart desires:</p>
+      <div class="row">
+        <input id="question" placeholder="Will Jennifer always love me?" />
+        <button id="askBtn">Shake</button>
+      </div>
+      <div class="ball" id="ball">
+        <div class="window" id="triangleText">8</div>
+      </div>
+      <div class="answer" id="answer"></div>
+      <div class="note">Tip: Press <strong>Enter</strong> to shake again. Share this page link with friends!</div>
+    </div>
+  </div>
 
   <script>
     const answers = [
@@ -32,10 +93,46 @@
       "Do not ask stupid questions"
     ];
 
-    function shake() {
-      const random = Math.floor(Math.random() * answers.length);
-      document.getElementById("answer").textContent = answers[random];
+    const q = document.getElementById("question");
+    const answerEl = document.getElementById("answer");
+    const btn = document.getElementById("askBtn");
+    const windowEl = document.getElementById("triangleText");
+    const ball = document.getElementById("ball");
+
+    function shake(){
+      ball.classList.remove('shaking'); // restart animation
+      // force reflow so the class re-applies
+      void ball.offsetWidth;
+      ball.classList.add('shaking');
+
+      const a = answers[Math.floor(Math.random() * answers.length)];
+      windowEl.textContent = "🔮";
+      setTimeout(()=>{
+        windowEl.textContent = "▲";
+        answerEl.textContent = a;
+      }, 280);
     }
+
+    btn.addEventListener('click', shake);
+    q.addEventListener('keydown', (e)=>{ if(e.key === 'Enter') shake(); });
+
+    // Theme toggle: auto (match system) → light → dark
+    const html = document.documentElement;
+    const themeBtn = document.getElementById('themeBtn');
+    const cycle = ['auto','light','dark'];
+    function applyTheme(mode){
+      if(mode === 'auto'){ html.removeAttribute('data-theme'); html.setAttribute('data-theme','auto'); }
+      else { html.setAttribute('data-theme', mode); }
+      localStorage.setItem('themeMode', mode);
+      themeBtn.textContent = mode === 'dark' ? '🌙' : (mode === 'light' ? '☀️' : '🌗');
+      themeBtn.title = `Theme: ${mode}`;
+    }
+    themeBtn.addEventListener('click', ()=>{
+      const current = localStorage.getItem('themeMode') || 'auto';
+      const next = cycle[(cycle.indexOf(current)+1)%cycle.length];
+      applyTheme(next);
+    });
+    applyTheme(localStorage.getItem('themeMode') || 'auto');
   </script>
 </body>
 </html>
