@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Magic 8 Ball 🎱</title>
+  <style>
+    body { font-family: Arial, sans-serif; text-align: center; margin-top: 80px; background: #FFC0CB; color: #E75480; }
+    button { padding: 12px 20px; border: none; border-radius: 10px; background: #3b82f6; color: white; font-size: 16px; cursor: pointer; }
+    input { padding: 10px; border-radius: 8px; border: 1px solid #555; width: 250px; }
+    .answer { margin-top: 30px; font-size: 20px; font-weight: bold; }
+  </style>
+</head>
+<body>
+  <h1>🎱 Magic 8 Ball</h1>
+  <p>Ask what your heart desires:</p>
+  <input id="question" placeholder="Will Jennifer always love me?" />
+  <br><br>
+  <button onclick="shake()">Shake</button>
+  <div class="answer" id="answer"></div>
+
+  <script>
+    const answers = [
+      "Yes - definitely",
+      "It is decidedly so.",
+      "Without a doubt",
+      "Reply hazy, try again",
+      "Ask again later",
+      "Better not tell you now",
+      "My sources say no",
+      "Outlook not so good",
+      "Very doubtful",
+      "Do not ask stupid questions"
+    ];
+
+    function shake() {
+      const random = Math.floor(Math.random() * answers.length);
+      document.getElementById("answer").textContent = answers[random];
+    }
+  </script>
+</body>
+</html>
